@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Токсово. Каркасы подшивки</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+    <style>
+        /* Стили для нашей страницы и 3D-просмотрщика */
+        body {
+            margin: 0;
+            overflow: hidden; /* Скрываем полосы прокрутки, так как модель будет занимать весь экран */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Минимальная высота - весь экран */
+            background-color: #7c7c7c; /* Легкий серый фон */
+            font-family: sans-serif; /* Простой шрифт */
+            color: #000000;
+        }
+        model-viewer {
+            width: 100%; /* Ширина на весь экран */
+            height: 100vh; /* Высота на весь экран */
+            display: block; /* Важно для корректного отображения */
+            --poster-color: #ffffff; /* Цвет фона, пока модель загружается */
+            border: none; /* Убираем рамку по умолчанию */
+        }
+        .info-text {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(247, 247, 247, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10; /* Убедимся, что текст поверх модели */
+            font-size: 14px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            margin-right: 6px;
+            border-radius: 3px;
+            vertical-align: middle;
+            border: 1px solid #888;
+        }
+
+        /* НАВИГАЦИОННОЕ МЕНЮ С КНОПКАМИ (ТЕПЕРЬ ПОД СТРЕЛОЧКОЙ И НАД ЛЕГЕНДОЙ) */
+        .navigation-menu {
+            margin: 12px 0; /* Отступы сверху и снизу от кнопок */
+            display: flex;
+            flex-direction: column; /* Кнопки будут друг под другом */
+            gap: 8px;
+        }
+        /* Стили кнопок переключения */
+        .nav-btn {
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid #777;
+            background: #ffffff;
+            color: #000000;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        /* Эффект наведения мыши */
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+        /* Стиль для активной (выбранной) кнопки */
+        .nav-btn.active {
+            background: #007BFF;
+            color: #ffffff;
+            border-color: #0056b3;
+        }
+
+        /* КЛАССЫ ДЛЯ АВТОМАТИЧЕСКОЙ СМЕНЫ ТЕКСТА ЛЕГЕНД ЧЕРЕЗ СТИЛИ body */
+        .legend-section {
+            display: none; /* Прячем все варианты текста по умолчанию */
+        }
+        /* Показываем нужный текст в зависимости от класса на теге body */
+        body.show-main .legend-main { display: block; }
+        body.show-uzel1 .legend-uzel1 { display: block; }
+        body.show-uzel2 .legend-uzel2 { display: block; }
+    </style>
+</head>
+<!-- Изначально вешаем класс show-main для отображения общей легенды -->
+<body class="show-main">
+
+    <div class="info-text" id="infoText">
+        <div id="infoInstructions">
+        Поворачивайте: тяните одним пальцем.<br>
+        Масштабируйте: сводите/разводите два пальца.<br>
+        Панорамирование: тяните двумя пальцами.<br>
+        </div>
+        <button id="toggleInfo" style="display:block; margin:10px auto 0 auto; cursor:pointer; background:none; border:none; font-size:18px;">▲</button>
+        
+        <!-- Меню переключения моделей перенесено сюда (оно вне сворачиваемого блока #infoLegend) -->
+        <div class="navigation-menu">
+            <button class="nav-btn active" onclick="switchModel(this, 'perimetr.glb', 'show-main')">Подшивка по периметру</button>
+            <button class="nav-btn" onclick="switchModel(this, 'krylco.glb', 'show-uzel1')">Подшивка на крыльце</button>
+        </div>
+
+        <div id="infoLegend">
+            
+            <!-- ЛЕГЕНДА ДЛЯ СТАДИИ 1 -->
+            <div class="legend-section legend-main">
+                <span class="legend-color" style="background: #F0E68CFF"></span>- Доска 95х20мм (подшивка)<br>
+                <span class="legend-color" style="background: #E7803EFF"></span>- Доска 95х20мм ПОДРЕЗАННАЯ (подшивка)<br>
+                <span class="legend-color" style="background: #D2B48CFF"></span>- Доска 145х20мм (подшивка/лобовая)<br>
+                <span class="legend-color" style="background: #5C0000FF"></span>- Доска 100х50мм (каркас подшивки)<br>
+                <span class="legend-color" style="background: #DAA520FF"></span>- Доска 120х20мм (обрешетка тяги)<br>
+                <span class="legend-color" style="background: #A0522DFF"></span>- Брус 50х50мм<br>
+                <span class="legend-color" style="background: #A1C3E7FF"></span>- Карнизная доска<br>
+                <span class="legend-color" style="background: #B1E774FF"></span>- Стропила<br>
+            </div>
+
+            <!-- ЛЕГЕНДА ДЛЯ СТАДИИ 2 -->
+            <div class="legend-section legend-uzel1">
+                <span class="legend-color" style="background: #DAA520FF"></span>- Доска 120х20мм (подшивка/обрешетка тяги)<br>
+                <span class="legend-color" style="background: #F0E68CFF"></span>- Доска 95х20мм (подшивка)<br>
+                <span class="legend-color" style="background: #E7803EFF"></span>- Доска 95х20мм ПОДРЕЗАННАЯ (подшивка)<br>
+                <span class="legend-color" style="background: #A0522DFF"></span>- Брус 50х50мм<br>
+                <span class="legend-color" style="background: #A3770AFF"></span>- Доска 195х45мм<br>
+                <span class="legend-color" style="background: #5C0000FF"></span>- Доска 100х50мм (каркас подшивки)<br>
+                <span class="legend-color" style="background: #E77C15FF"></span>- Доска 150х150мм<br>
+                <span class="legend-color" style="background: #DE3B8BFF"></span>- Доска 100х100мм<br>
+                <span class="legend-color" style="background: #A1C3E7FF"></span>- Карнизная доска<br>
+                <span class="legend-color" style="background: #B1E774FF"></span>- Стропила<br>
+            </div>
+
+        </div>
+    </div>
+
+    <model-viewer
+        id="viewer"
+        src="perimetr.glb"  alt="Токсово. Каркасы подшивки"
+        camera-controls           
+        touch-action="pan-y"      
+        auto-rotate               
+        auto-rotate-delay="10000000"  
+        rotation-per-second="0.2rad" 
+        shadow-intensity="1"  
+        style="filter: none;"    
+        environment-image="neutral" exposure="1"              
+        loading="eager"           ar                        
+        ar-modes="webxr scene-viewer quick-look" >
+    </model-viewer>
+
+<script>
+    // Скрипт для сворачивания легенды (ваш оригинальный)
+    const toggleBtn = document.getElementById('toggleInfo');
+    const infoLegend = document.getElementById('infoLegend');
+    let collapsed = false;
+    toggleBtn.addEventListener('click', function() {
+        collapsed = !collapsed;
+        if (collapsed) {
+            infoLegend.style.display = 'none';
+            toggleBtn.textContent = '▼';
+        } else {
+            infoLegend.style.display = '';
+            toggleBtn.textContent = '▲';
+        }
+    });
+
+    // Рабочий скрипт с добавлением одной надежной строки для CSS-класса
+    function switchModel(buttonElement, modelPath, bodyClass) {
+        const viewer = document.getElementById('viewer');
+        
+        // Меняем путь к файлу модели у вьювера
+        viewer.src = modelPath;
+
+        // Переключаем класс подсветки активной кнопки
+        const buttons = document.querySelectorAll('.nav-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        buttonElement.classList.add('active');
+
+        // Меняем класс у body, чтобы CSS сам переключил текст
+        document.body.className = bodyClass;
+    }
+</script>
+</body>
+</html>
